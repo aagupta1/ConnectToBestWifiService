@@ -481,7 +481,7 @@ int ConnectToBestWifi(HANDLE hClient) {
 
 DWORD WINAPI ServiceWorkerThread(LPVOID lpParam)
 {
-    Sleep(60000); // uncomment this to debug the app
+    //Sleep(60000); // uncomment this to debug the app
     OutputDebugString(_T("ConnectToBestWifiService: ServiceWorkerThread: Entry \n"));
 
     hFile = CreateFile(L"ConnectToBestWifiService.log",
@@ -494,7 +494,7 @@ DWORD WINAPI ServiceWorkerThread(LPVOID lpParam)
 
     if (hFile == INVALID_HANDLE_VALUE)
     {
-        OutputDebugString(_T("ConnectToBestWifiService: ServiceWorkerThread: Unable to open log file for writing \n"));
+        OutputDebugString(_T("ConnectToBestWifiService:  ServiceWorkerThread: Unable to open log file for writing \n"));
     }
     
     WCHAR Path[512];
