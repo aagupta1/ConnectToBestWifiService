@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
-#include <TraceLoggingProvider.h>  
 #include <strsafe.h>
 #include <wmistr.h>
 #include <evntrace.h>
@@ -36,19 +35,23 @@ DWORD WINAPI ServiceWorkerThread(LPVOID lpParam);
 
 //Handle for log file
 HANDLE hFile;
+BOOLEAN isLoggingEnabled = FALSE;
 
 void logMessage(char message[512])
 {
+    if (FALSE == isLoggingEnabled)
+        return;
 
-    DWORD dwBytesToWrite = (DWORD)strlen(message);
-    DWORD dwBytesWritten = 0;
-    BOOL bErrorFlag = FALSE;
-
+    
     if (INVALID_HANDLE_VALUE == hFile) {
         OutputDebugString(_T("Unable to write to log file - file handle is invalid \n"));
         return;
     }
 
+    DWORD dwBytesToWrite = (DWORD)strlen(message);
+    DWORD dwBytesWritten = 0;
+    BOOL bErrorFlag = FALSE;
+    
     bErrorFlag = WriteFile(
         hFile,
         message,
@@ -221,7 +224,10 @@ VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode)
         }
 
         // Close Log file handle
-        CloseHandle(hFile);
+        if (hFile)
+        {
+            CloseHandle(hFile);
+        }
 
         // This will signal the worker thread to start shutting down
         SetEvent(g_ServiceStopEvent);
@@ -255,6 +261,14 @@ int ConnectToBestWifi(HANDLE hClient) {
 
     DWORD dwResult = 0;
     int iRSSI = 0;
+
+    char msgbuf[512];
+    SYSTEMTIME lt;
+    GetLocalTime(&lt);
+    sprintf_s(msgbuf, "\n\n The current time is: %d:%d:%d  %02d:%02d:%02d",lt.wYear,lt.wMonth,lt.wDay,lt.wHour,lt.wMinute, lt.wSecond);
+    OutputDebugStringA((LPCSTR)msgbuf);
+    logMessage(msgbuf);
+
 
     dwResult = WlanEnumInterfaces(hClient, NULL, &pIfList);
 
@@ -292,7 +306,7 @@ int ConnectToBestWifi(HANDLE hClient) {
             }
             else {
                 char msgbuf[512];
-                sprintf_s(msgbuf, "InterfaceGUID[%d]: %ws\n", i, GuidString);
+                sprintf_s(msgbuf, "InterfaceGUID[%d]: %ws \n", i, GuidString);
                 OutputDebugStringA((LPCSTR)msgbuf);
                 logMessage(msgbuf);
             }
@@ -484,22 +498,22 @@ DWORD WINAPI ServiceWorkerThread(LPVOID lpParam)
     //Sleep(60000); // uncomment this to debug the app
     OutputDebugString(_T("ConnectToBestWifiService: ServiceWorkerThread: Entry \n"));
 
-    hFile = CreateFile(L"ConnectToBestWifiService.log",
-        GENERIC_WRITE,
-        0,
-        NULL,
-        CREATE_ALWAYS,
-        FILE_ATTRIBUTE_NORMAL,
-        NULL);
+    if (TRUE == isLoggingEnabled) {
+        hFile = CreateFile(L"ConnectToBestWifiService.log",
+            GENERIC_WRITE,
+            FILE_SHARE_READ,
+            NULL,
+            CREATE_ALWAYS,
+            FILE_ATTRIBUTE_NORMAL,
+            NULL);
 
-    if (hFile == INVALID_HANDLE_VALUE)
-    {
-        OutputDebugString(_T("ConnectToBestWifiService:  ServiceWorkerThread: Unable to open log file for writing \n"));
+        if (hFile == INVALID_HANDLE_VALUE)
+        {
+            OutputDebugString(_T("ConnectToBestWifiService:  ServiceWorkerThread: Unable to open log file for writing \n"));
+        }
+
     }
     
-    WCHAR Path[512];
-    GetFinalPathNameByHandle(hFile, Path, 512, VOLUME_NAME_NT);
-           
     DWORD dwMaxClient = 2;
     DWORD dwCurVersion = 0;
     HANDLE hClient = NULL;

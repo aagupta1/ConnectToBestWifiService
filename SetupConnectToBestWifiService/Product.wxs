@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+	 >
 	<Product Id="*" Name="SetupConnectToBestWifiService" Language="1033" Version="1.0.0.0" Manufacturer="Aarti Gupta" UpgradeCode="6fc6877b-5568-48d1-aafe-d052842254b4">
 		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
-
+		
 		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 		<MediaTemplate EmbedCab="yes"/>
 
@@ -24,7 +25,7 @@
 			<Component Id="ProductComponent">
 				<File Source="$(var.ConnectToBestWifiService.TargetPath)" KeyPath="yes"/>
 			    <ServiceInstall Id="ServiceInstaller" Name="ConnectToBestWifiService" DisplayName="ConnectToBestWifiService" Description="Connect to the best available wifi"
-								Type="ownProcess" Account="LocalSystem" Start="auto" ErrorControl="normal"  Arguments=" /start ConnectToBestWifiService"/>
+								Type="ownProcess"  Start="auto" ErrorControl="normal"  Arguments=" /start ConnectToBestWifiService"/>
 				<ServiceControl Id="ControlService" Name="ConnectToBestWifiService" Start="install" Stop="both" Remove="uninstall" Wait="yes"/>
 			</Component>
 		</ComponentGroup>
